@@ -1,48 +1,45 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import get_object_or_404
 from .models import Recipe
+from .serializers import RecipeSerializer
 
+@api_view(['GET', 'POST'])
 def recipes(request):
     if request.method == 'POST':
-        data = request.POST
-        recipe_image = request.FILES.get('recipe_image')
-        recipe_name = data.get('recipe_name')
-        recipe_description = data.get('recipe_description')
-
-        Recipe.objects.create(
-            recipe_image=recipe_image,
-            recipe_name=recipe_name,
-            recipe_description=recipe_description,
-        )
-        return redirect('/')
+        serializer = RecipeSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     queryset = Recipe.objects.all()
-    if request.GET.get('search'):
-        queryset = queryset.filter(recipe_name__icontains=request.GET.get('search'))
+    search = request.query_params.get('search')
+    if search:
+        queryset = queryset.filter(recipe_name__icontains=search)
 
-    context = {'recipes': queryset}
-    return render(request, 'recipes.html', context)
+    serializer = RecipeSerializer(queryset, many=True)
+    return Response(serializer.data)
 
 
+@api_view(['DELETE'])
 def delete_recipe(request, id):
     recipe = get_object_or_404(Recipe, id=id)
     recipe.delete()
-    return redirect('/')
+    return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+@api_view(['GET', 'POST'])
 def update_recipe(request, id):
     recipe = get_object_or_404(Recipe, id=id)
+    
     if request.method == 'POST':
-        data = request.POST
-        recipe_name = data.get('recipe_name')
-        recipe_description = data.get('recipe_description')
-        recipe_image = request.FILES.get('recipe_image')
+        serializer = RecipeSerializer(recipe, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        recipe.recipe_name = recipe_name
-        recipe.recipe_description = recipe_description
-        if recipe_image:
-            recipe.recipe_image = recipe_image
-        recipe.save()
-        return redirect('/')
-
-    context = {'recipe': recipe}
-    return render(request, 'update_recipe.html', context)
+    serializer = RecipeSerializer(recipe)
+    return Response(serializer.data)
