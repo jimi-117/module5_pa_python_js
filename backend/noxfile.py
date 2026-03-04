@@ -1,3 +1,4 @@
+from __future__ import annotations
 from nox import Session, options
 from nox_uv import session # type: ignore
 
@@ -10,6 +11,23 @@ PYTHON_VERSIONS = [
     "3.14",
 ]
 
-@session(PYTHON_VERSIONS=PYTHON_VERSIONS, uv_only_groups=["dev"])
-def format(s: Session) -> None:
-    s.run("ruff", "format", "src")
+# @session(python=PYTHON_VERSIONS, uv_only_groups=["dev"])
+# def format(s: Session) -> None:
+#     s.run("ruff", "format", "src")
+
+# @session(python=PYTHON_VERSIONS, uv_only_groups=["dev"])
+# def lint(s: Session) -> None:
+#     s.run("ruff", "check", "src")
+
+@session(python=PYTHON_VERSIONS)
+def unit_test(s: Session) -> None:
+    s.run("pytest", "--cov")
+
+
+@session
+def all(s: Session) -> None:
+    # s.notify("format")
+    # s.notify("lint")
+    # s.notify("type_check")
+    s.notify("unit_test")
+    # s.notify("security")
