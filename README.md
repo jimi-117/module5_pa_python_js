@@ -1,6 +1,6 @@
 # Simple recipe app
 ---
-
+<pre>
 /
 ├── backend/ (Django)
 │   ├── manage.py
@@ -11,7 +11,7 @@
 │   ├── src/
 │   └── public/
 └── docker-compose.yml ( TODO )
-
+</pre>
 ## Architecture
 - Communications: Rest API communication by using fetch or/and axios between frontend and backend
 - Auth          : Token base auth with JWT
