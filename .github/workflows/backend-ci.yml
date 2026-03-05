@@ -1,0 +1,53 @@
+name: Backend CI
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+      - dev
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+    backend-test:
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: backend
+
+        strategy:
+            matrix:
+                python-version: [
+                    # '3.13',
+                    '3.14',
+                ]
+        steps:
+            - uses: actions/checkout@v5
+
+            - name: Install uv and set up Python
+              uses: astral-sh/setup-uv@7
+              with:
+                python-version: ${{ matrix.python-version }}
+                enable-cache: true
+
+            - name: Install the project
+              run: uv sync --locked --dev
+            
+            - name: Run tests
+              run: uv run nox
+
+            - name: Prune uv cache for CI
+              run: uv cache prune --ci
