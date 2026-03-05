@@ -1,0 +1,61 @@
+name: Frontend CI
+
+on:
+    push:
+        branches: [main, dev, staging]
+        paths:
+          - 'frontend/**'
+          - '.github/workflows/frontend-ci.yml'
+    pull_request:
+        branches: [main, dev, staging]
+        paths:
+          - 'frontend/**'
+          - '.github/workflows/frontend-ci.yml'
+
+jobs:
+    frontend-ci:
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: frontend
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Set up Volta
+              uses: volta-cli/action@v4
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4.2.0
+              with:
+                version: latest
+                run_install: false
+            - name: Get pnpm store directory
+              id: pnpm-cache
+              shell: bash
+              run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+            - uses: actions/cache@v4
+              with:
+                path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+                key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+                restore-keys: |
+                    ${{ runner.os }}-pnpm-store-
+            
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+            
+            - name: Format
+              run: pnpm run format:check
+
+            - name: Lint
+              run: pnpm run lint
+
+            - name: Type check
+              run: pnpm run check
+
+            - name: Build
+              run: pnpm run build
+
+            - name: Test
+              run: pnpm run test
