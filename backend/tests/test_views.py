@@ -23,23 +23,23 @@ class TestRecipeViews:
             content_type='image/jpeg'
         )
 
-    # 1. Test Listing and Search functionality
+    # Test Listing and Search functionality
     def test_recipes_list_and_search(self, client, sample_recipe):
         # Check if the list view renders correctly
         url = reverse('recipes')
         response = client.get(url)
         assert response.status_code == 200
-        assert "Test Curry" in response.content.decode('utf-8')
+        assert "Test Curry" in response.json()[0]['recipe_name']
 
         # Check search functionality (match found)
         response = client.get(url, {'search': 'Curry'})
-        assert "Test Curry" in response.content.decode('utf-8')
+        assert "Test Curry" in response.json()[0]['recipe_name']
 
         # Check search functionality (no match)
         response = client.get(url, {'search': 'Pasta'})
-        assert "Test Curry" not in response.content.decode('utf-8')
+        assert len(response.json()) == 0
 
-    # 2. Test Recipe Creation (POST)
+    # Test Recipe Creation (POST)
     def test_create_recipe(self, client, dummy_image):
         url = reverse('recipes')
         data = {
@@ -51,20 +51,19 @@ class TestRecipeViews:
         response = client.post(url, data)
 
         # Should redirect to home page after success
-        assert response.status_code == 302
-        assert response.url == '/'
-        # Verify data is saved in the database
+        assert response.status_code == 201
+        assert response.json()['recipe_name'] == 'New Recipe'
         assert Recipe.objects.filter(recipe_name='New Recipe').exists()
 
-    # 3. Test Recipe Deletion
+    # Test Recipe Deletion
     def test_delete_recipe(self, client, sample_recipe):
         url = reverse('delete_recipe', kwargs={'id': sample_recipe.id})
-        response = client.get(url) # Your view handles deletion via redirect
+        response = client.delete(url) # Your view handles deletion via redirect
 
-        assert response.status_code == 302
+        assert response.status_code == 204
         assert not Recipe.objects.filter(id=sample_recipe.id).exists()
 
-    # 4. Test Recipe Update (GET and POST)
+    # Test Recipe Update (GET and POST)
     def test_update_recipe(self, client, sample_recipe):
         url = reverse('update_recipe', kwargs={'id': sample_recipe.id})
         
@@ -77,10 +76,10 @@ class TestRecipeViews:
             'recipe_name': 'Updated Name',
             'recipe_description': 'Updated Description',
         }
-        response = client.post(url, updated_data)
+        response = client.patch(url, updated_data, content_type='application/json')
+        assert response.status_code == 200
         
         # Refresh the object from DB and verify changes
         sample_recipe.refresh_from_db()
-        assert response.status_code == 302
         assert sample_recipe.recipe_name == 'Updated Name'
         assert sample_recipe.recipe_description == 'Updated Description'
