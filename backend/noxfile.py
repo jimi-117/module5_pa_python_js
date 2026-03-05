@@ -11,23 +11,28 @@ PYTHON_VERSIONS = [
     "3.14",
 ]
 
-# @session(python=PYTHON_VERSIONS, uv_only_groups=["dev"])
-# def format(s: Session) -> None:
-#     s.run("ruff", "format", "src")
+@session(python=PYTHON_VERSIONS, uv_only_groups=["dev"])
+def format(s: Session) -> None:
+    s.run("ruff", "format", "api")
+    s.run("ruff", "check", "--fix","api")
 
-# @session(python=PYTHON_VERSIONS, uv_only_groups=["dev"])
-# def lint(s: Session) -> None:
-#     s.run("ruff", "check", "src")
+@session(python=PYTHON_VERSIONS, uv_only_groups=["dev"])
+def lint(s: Session) -> None:
+    s.run("ruff", "check", "api")
 
-@session(python=PYTHON_VERSIONS)
+@session(python=PYTHON_VERSIONS, uv_groups=["dev"])
+def type_check(s: Session) -> None:
+    s.run("mypy", "api")
+
+@session(python=PYTHON_VERSIONS, uv_groups=["dev"])
 def unit_test(s: Session) -> None:
-    s.run("pytest", "--cov")
+    s.run("pytest","--cov")
 
 
 @session
 def all(s: Session) -> None:
-    # s.notify("format")
-    # s.notify("lint")
-    # s.notify("type_check")
+    s.notify("format")
+    s.notify("lint")
+    s.notify("type_check")
     s.notify("unit_test")
     # s.notify("security")

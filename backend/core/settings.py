@@ -22,6 +22,8 @@ env = environ.Env(
     DEBUG=(bool, False)
 )
 env_file = os.path.join(BASE_DIR, ".env")
+# print(f"Reading .env from: {env_file}")
+
 if os.path.exists(env_file):
     environ.Env.read_env(env_file)
 
@@ -32,7 +34,9 @@ if os.path.exists(env_file):
 SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env('DEBUG')
+DEBUG = env.bool('DEBUG', default=False)
+# print(f"DEBUG value: {DEBUG}, type: {type(DEBUG)}")
+# print("DEBUG is set to:", DEBUG)
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
 
@@ -46,9 +50,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'api.apps.ApiConfig',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -57,6 +63,26 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CORS_ALLOWED_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = env.list('TRUSTED_ORIGINS', default=[])
+CORS_PREFLIGHT_MAX_AGE = 1800 # This allowes the browser to cache the preflight response for 30 minutes
+CSRF_TRUSTED_ORIGINS = env.list('CSRF_TRUSTED_ORIGINS', default=[])
+
+print("Environment activated is:", DEBUG)
+
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+else:
+    # Ensure they are False during development
+    SECURE_SSL_REDIRECT = False
+    SESSION_COOKIE_SECURE = False
+    CSRF_COOKIE_SECURE = False
 
 ROOT_URLCONF = 'core.urls'
 

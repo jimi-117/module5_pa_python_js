@@ -2,11 +2,11 @@
 ---
 <pre>
 /
-├── backend/ (Django)
+├── backend/ (Django: Django Rest Framework)
 │   ├── manage.py
 │   ├── core/
 │   └── api/
-├── frontend/ (Svelte5)
+├── frontend/ (Svelte5: )
 │   ├── package.json
 │   ├── src/
 │   └── public/
@@ -23,7 +23,7 @@
 - volta
 - pnpm
 - svelte5
-- express.js
+- sveltkit (BFF: Backend for frontend)
 
 ### Backend:
 - uv
