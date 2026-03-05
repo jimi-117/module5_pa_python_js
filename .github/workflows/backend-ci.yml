@@ -1,0 +1,59 @@
+name: Backend CI
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+      - dev
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+  pull_request:
+    paths:
+      - 'backend/**'
+      - '.github/workflows/backend-ci.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+    backend-test:
+        runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: backend
+
+        strategy:
+            matrix:
+                python-version: [
+                    # '3.13',
+                    '3.14',
+                ]
+        steps:
+            - uses: actions/checkout@v5
+
+            - name: Install uv and set up Python
+              uses: astral-sh/setup-uv@v7.3.1
+              with:
+                python-version: ${{ matrix.python-version }}
+                enable-cache: true
+
+            - name: Install the project
+              run: uv sync --locked --dev
+            
+            - name: Run tests
+              env:
+                SECRET_KEY: "django-insecure-ci-test-key-only"
+                DEBUG: "True"
+                ALLOWED_HOSTS: "127.0.0.1,localhost"
+                TRUSTED_ORIGINS: "http://localhost:5173"
+                CSRF_TRUSTED_ORIGINS: "http://localhost:5173"
+              run: uv run nox
+
+            - name: Prune uv cache for CI
+              run: uv cache prune --ci
