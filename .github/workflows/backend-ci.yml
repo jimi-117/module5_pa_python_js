@@ -47,6 +47,12 @@ jobs:
               run: uv sync --locked --dev
             
             - name: Run tests
+              env:
+                SECRET_KEY: "django-insecure-ci-test-key-only"
+                DEBUG: "True"
+                ALLOWED_HOSTS: "127.0.0.1,localhost"
+                TRUSTED_ORIGINS: "http://localhost:5173"
+                CSRF_TRUSTED_ORIGINS: "http://localhost:5173"
               run: uv run nox
 
             - name: Prune uv cache for CI
