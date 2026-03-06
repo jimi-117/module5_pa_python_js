@@ -22,7 +22,7 @@ env = environ.Env(
     DEBUG=(bool, False)
 )
 env_file = os.path.join(BASE_DIR, ".env")
-# print(f"Reading .env from: {env_file}")
+print(f"Reading .env from: {env_file}")
 
 if os.path.exists(env_file):
     environ.Env.read_env(env_file)
@@ -35,8 +35,8 @@ SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool('DEBUG', default=False)
-# print(f"DEBUG value: {DEBUG}, type: {type(DEBUG)}")
-# print("DEBUG is set to:", DEBUG)
+print(f"DEBUG value: {DEBUG}, type: {type(DEBUG)}")
+print("DEBUG is set to:", DEBUG)
 
 ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
 
@@ -83,6 +83,8 @@ else:
     SECURE_SSL_REDIRECT = False
     SESSION_COOKIE_SECURE = False
     CSRF_COOKIE_SECURE = False
+    SECURE_PROXY_SSL_HEADER = None
+    SECURE_HSTS_SECONDS = 0
 
 ROOT_URLCONF = 'core.urls'
 
